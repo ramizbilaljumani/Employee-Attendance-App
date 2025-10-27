@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attendance Tracker</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin-top: 40px; background: #f3f4f6; }
+    input { padding: 8px; width: 200px; margin: 10px; border-radius: 6px; border: 1px solid #ccc; }
+    button { padding: 8px 16px; margin: 5px; border: none; border-radius: 6px; background: #4CAF50; color: white; cursor: pointer; }
+    button:hover { background: #45a049; }
+    #log { margin-top: 20px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; background: #fff; padding: 10px; border-radius: 6px; box-shadow: 0 0 10px #ccc; }
+    .record { padding: 5px; border-bottom: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <h1>Employee Attendance Tracker</h1>
+  <input type="text" id="name" placeholder="Enter your name" /><br>
+
+  <button onclick="checkIn()">Check In</button>
+  <button onclick="checkOut()">Check Out</button>
+  <button onclick="breakStart()">Break Start</button>
+  <button onclick="breakEnd()">Break End</button>
+
+  <div id="log"></div>
+
+  <script>
+    const apiBase = "http://localhost:4000";
+
+    async function loadRecords() {
+      const res = await fetch(`${apiBase}/records`);
+      const data = await res.json();
+      const log = document.getElementById("log");
+      log.innerHTML = "";
+      data.forEach(record => {
+        log.innerHTML += `<div class="record">
+          <strong>${record.name}</strong> (${record.date})<br>
+          Check In: ${record.check_in || "-"} | Check Out: ${record.check_out || "-"}<br>
+          Break Start: ${record.break_start || "-"} | Break End: ${record.break_end || "-"}
+        </div>`;
+      });
+    }
+
+    async function sendAction(endpoint) {
+      const name = document.getElementById("name").value.trim();
+      if (!name) return alert("Please enter your name!");
+      const res = await fetch(`${apiBase}/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json();
+      alert(data.message);
+      loadRecords();
+    }
+
+    function checkIn() { sendAction("checkin"); }
+    function checkOut() { sendAction("checkout"); }
+    function breakStart() { sendAction("breakstart"); }
+    function breakEnd() { sendAction("breakend"); }
+
+    // Load records on page load
+    loadRecords();
+  </script>
+</body>
+</html>

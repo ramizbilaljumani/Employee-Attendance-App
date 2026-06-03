@@ -1,66 +1,765 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Attendance Tracker</title>
-  <style>
-    body { font-family: Arial; text-align: center; margin-top: 40px; background: #f3f4f6; }
-    input { padding: 8px; width: 200px; margin: 10px; border-radius: 6px; border: 1px solid #ccc; }
-    button { padding: 8px 16px; margin: 5px; border: none; border-radius: 6px; background: #4CAF50; color: white; cursor: pointer; }
-    button:hover { background: #45a049; }
-    #log { margin-top: 20px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; background: #fff; padding: 10px; border-radius: 6px; box-shadow: 0 0 10px #ccc; }
-    .record { padding: 5px; border-bottom: 1px solid #eee; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FanConnect</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--blue:#00AFF0;--blue-dark:#0090c5;--blue-light:#e8f8ff;--white:#fff;--bg:#f3f4f6;--border:#e7e7e7;--text:#111;--muted:#6b7280}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--blue);text-decoration:none}
+button{cursor:pointer;font-family:inherit}
+
+.app{display:flex;max-width:1240px;margin:0 auto;min-height:100vh}
+.sidebar{width:240px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:20px 12px;border-right:1px solid var(--border);background:var(--white);flex-shrink:0}
+.main{flex:1;max-width:620px;border-right:1px solid var(--border);min-height:100vh;background:var(--white)}
+.rsidebar{width:300px;padding:20px 16px;flex-shrink:0}
+
+.logo{display:flex;align-items:center;gap:8px;margin-bottom:28px;padding:0 8px;cursor:pointer}
+.logo-icon{width:34px;height:34px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:900;flex-shrink:0}
+.logo-text{font-size:20px;font-weight:900;color:var(--blue)}
+
+.nav{list-style:none;flex:1;display:flex;flex-direction:column;gap:2px}
+.navitem{display:flex;align-items:center;gap:14px;padding:11px 14px;border-radius:50px;font-size:15px;font-weight:500;cursor:pointer;color:var(--text);transition:background .15s;white-space:nowrap}
+.navitem:hover{background:var(--bg)}
+.navitem.active{color:var(--blue);font-weight:700}
+.navitem svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.nbadge{background:var(--blue);color:#fff;font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:auto}
+
+.suser{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;cursor:pointer;border-top:1px solid var(--border);margin-top:12px;padding-top:16px;transition:background .15s}
+.suser:hover{background:var(--bg)}
+.suser-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.suser-un{font-size:12px;color:var(--muted)}
+
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 20px;border-radius:50px;font-size:14px;font-weight:700;border:none;transition:all .15s;cursor:pointer}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-outline{background:transparent;border:2px solid var(--blue);color:var(--blue)}
+.btn-outline:hover{background:var(--blue-light)}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text)}
+.btn-ghost:hover{background:var(--bg)}
+.btn-danger{background:#ef4444;color:#fff}
+.btn-sm{padding:6px 14px;font-size:13px}
+.btn-lg{padding:13px 30px;font-size:16px}
+.btn-block{width:100%}
+
+.fg{margin-bottom:14px}
+.flabel{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.finput{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;outline:none;transition:border-color .15s;background:#fff;color:var(--text);font-family:inherit}
+.finput:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,175,240,.1)}
+textarea.finput{resize:vertical;min-height:100px}
+
+.mhead{position:sticky;top:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:14px 20px;z-index:10;display:flex;align-items:center;justify-content:space-between}
+.mhead h2{font-size:18px;font-weight:800}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.mhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.mtitle{font-size:20px;font-weight:800}
+.mclose{width:30px;height:30px;border:none;background:var(--bg);border-radius:50%;font-size:16px;display:flex;align-items:center;justify-content:center}
+
+.post{background:#fff;border-bottom:1px solid var(--border);padding:16px 20px}
+.post-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.post-hdr-info h4{font-size:14px;font-weight:700;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.post-hdr-info span{font-size:12px;color:var(--muted)}
+.post-body{font-size:14px;line-height:1.65;white-space:pre-wrap;margin-bottom:10px}
+.post-media{border-radius:12px;overflow:hidden;margin-bottom:10px;aspect-ratio:16/9;position:relative;display:flex;align-items:center;justify-content:center}
+.post-locked{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;text-align:center;padding:16px}
+.post-locked h4{font-size:17px;font-weight:800}
+.post-locked p{font-size:12px;opacity:.8;margin-bottom:6px}
+.post-actions{display:flex;gap:18px;padding-top:8px;border-top:1px solid var(--border);margin-top:6px}
+.pabtn{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--muted);background:none;border:none;cursor:pointer;padding:3px 0;transition:color .15s}
+.pabtn:hover{color:var(--blue)}
+.pabtn.liked{color:#ef4444}
+.pabtn.liked svg{fill:#ef4444}
+.pabtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pbadge{display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+
+.ccard{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.ccard:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.ccard-cover{height:72px}
+.ccard-body{padding:0 14px 14px;margin-top:-24px}
+.ccard-name{font-size:14px;font-weight:700;display:flex;align-items:center;gap:3px;margin-top:6px}
+.ccard-un{font-size:12px;color:var(--muted);margin-bottom:6px}
+.ccard-stats{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-bottom:10px}
+.ccard-stats b{color:var(--text)}
+
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;padding:20px}
+
+.prof-cover{height:190px}
+.prof-info{padding:0 20px 20px}
+.prof-av-wrap{margin-top:-46px;margin-bottom:10px}
+.prof-name{font-size:22px;font-weight:800;display:flex;align-items:center;gap:6px}
+.prof-un{font-size:14px;color:var(--muted);margin-bottom:10px}
+.prof-bio{font-size:14px;line-height:1.65;margin-bottom:14px;max-width:480px}
+.prof-stats{display:flex;gap:22px;margin-bottom:16px}
+.pstat-v{font-size:18px;font-weight:800}
+.pstat-l{font-size:11px;color:var(--muted)}
+.sub-banner{background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:20px;color:#fff;text-align:center;margin-bottom:16px}
+.sub-banner h3{font-size:17px;margin-bottom:6px}
+.sub-banner p{font-size:13px;opacity:.8;margin-bottom:14px}
+
+.msg-wrap{display:flex;height:100vh;overflow:hidden}
+.conv-list{width:300px;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0}
+.conv-item{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
+.conv-item:hover{background:var(--bg)}
+.conv-item.active{background:var(--blue-light)}
+.conv-name{font-weight:700;font-size:13px}
+.conv-prev{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat{flex:1;display:flex;flex-direction:column}
+.chat-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.bubble{max-width:68%;padding:10px 14px;border-radius:18px;font-size:13px;line-height:1.5}
+.bubble.sent{background:var(--blue);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+.bubble.recv{background:#fff;border:1px solid var(--border);margin-right:auto;border-bottom-left-radius:4px}
+.chat-in{padding:12px 16px;border-top:1px solid var(--border);background:#fff;display:flex;gap:10px;align-items:flex-end}
+.chat-input{flex:1;padding:9px 14px;border:1.5px solid var(--border);border-radius:22px;outline:none;font-size:13px;font-family:inherit;resize:none}
+.chat-input:focus{border-color:var(--blue)}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;padding:20px}
+.scard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center}
+.scard-v{font-size:28px;font-weight:900;color:var(--blue)}
+.scard-l{font-size:12px;color:var(--muted);margin-top:2px}
+
+.searchbar{display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--border);border-radius:50px;padding:9px 14px}
+.searchbar input{border:none;background:transparent;outline:none;flex:1;font-size:13px}
+.searchbar svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+.stories{display:flex;gap:14px;overflow-x:auto;padding:14px 20px;border-bottom:1px solid var(--border);scrollbar-width:none}
+.stories::-webkit-scrollbar{display:none}
+.story{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;min-width:60px}
+.story-ring{width:54px;height:54px;border-radius:50%;border:3px solid var(--blue);padding:2px}
+.story-av{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff}
+.story-lbl{font-size:11px;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+
+.alert{padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:10px}
+.alert-err{background:#fee2e2;color:#dc2626;border:1px solid #fecaca}
+.alert-ok{background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0}
+
+.divider{height:1px;background:var(--border);margin:14px 0}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty h3{font-size:17px;color:var(--text);margin-bottom:6px}
+.spin{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;margin:40px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+.vchk svg{width:15px;height:15px;fill:var(--blue);display:inline-block;vertical-align:middle}
+
+#toasts{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:7px}
+.toast{background:#111;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.25);animation:tin .25s ease}
+.toast.ok{background:#16a34a}.toast.err{background:#dc2626}
+@keyframes tin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.suggest-card{background:var(--bg);border-radius:14px;padding:14px;margin-bottom:14px}
+.suggest-card h3{font-size:15px;font-weight:800;margin-bottom:14px}
+.sug-item{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.sug-info{flex:1;min-width:0}
+.sug-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sug-meta{font-size:11px;color:var(--muted)}
+
+.landing-nav{display:flex;justify-content:space-between;align-items:center;padding:14px 36px;background:#fff;border-bottom:1px solid var(--border)}
+.hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#0f2027 100%);padding:80px 40px;text-align:center}
+.hero h1{font-size:48px;font-weight:900;color:#fff;line-height:1.1;margin-bottom:16px}
+.hero h1 span{color:var(--blue)}
+.hero p{font-size:17px;color:#94a3b8;margin-bottom:36px;max-width:540px;margin-left:auto;margin-right:auto;line-height:1.6}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+@media(max-width:1100px){.rsidebar{display:none}}
+@media(max-width:760px){
+  .sidebar{width:58px}
+  .logo-text,.navitem span,.suser-info{display:none}
+  .navitem{justify-content:center;padding:11px}
+  .logo{justify-content:center;padding:0;margin-bottom:20px}
+  .cgrid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:500px){.sidebar{display:none}.conv-list{width:100%}}
+</style>
 </head>
 <body>
-  <h1>Employee Attendance Tracker</h1>
-  <input type="text" id="name" placeholder="Enter your name" /><br>
+<div id="root"></div>
+<div id="toasts"></div>
+<script>
+// ── STATE ──────────────────────────────────────────────
+let S={token:localStorage.getItem('fc_token'),user:JSON.parse(localStorage.getItem('fc_user')||'null'),view:'home',vd:null};
 
-  <button onclick="checkIn()">Check In</button>
-  <button onclick="checkOut()">Check Out</button>
-  <button onclick="breakStart()">Break Start</button>
-  <button onclick="breakEnd()">Break End</button>
+function api(path,opts={}){
+  const h={'Content-Type':'application/json'};
+  if(S.token) h['Authorization']='Bearer '+S.token;
+  return fetch(path,{...opts,headers:{...h,...(opts.headers||{})}}).then(r=>r.json());
+}
+function toast(msg,type=''){
+  const el=document.createElement('div');
+  el.className='toast '+type; el.textContent=msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),3200);
+}
+function go(view,data=null){S.view=view;S.vd=data;render();window.scrollTo(0,0);}
+function logout(){localStorage.removeItem('fc_token');localStorage.removeItem('fc_user');S.token=null;S.user=null;render();}
+function ago(d){const m=Math.floor((Date.now()-new Date(d))/60000);if(m<1)return'just now';if(m<60)return m+'m';const h=Math.floor(m/60);if(h<24)return h+'h';const dy=Math.floor(h/24);if(dy<30)return dy+'d';return new Date(d).toLocaleDateString();}
+function fmt(n){n=parseInt(n)||0;if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n;}
+function esc(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-  <div id="log"></div>
+// ── ICONS ──────────────────────────────────────────────
+const I={
+  home:`<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  explore:`<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+  bell:`<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+  msg:`<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+  user:`<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  star:`<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  cog:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+  out:`<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+  heart:`<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+  comment:`<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+  dollar:`<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+  send:`<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
+  plus:`<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  check:`<svg viewBox="0 0 24 24" fill="var(--blue)"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>`,
+  search:`<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+};
 
-  <script>
-    const apiBase = "http://localhost:4000";
+// ── AVATAR ─────────────────────────────────────────────
+function Av(u,w=40,h=40,fs=16){
+  const l=((u.display_name||u.username||'?')[0]).toUpperCase();
+  const c=u.avatar_color||'#00AFF0';
+  return `<div class="av" style="background:${c};width:${w}px;height:${h}px;font-size:${fs}px">${l}</div>`;
+}
 
-    async function loadRecords() {
-      const res = await fetch(`${apiBase}/records`);
-      const data = await res.json();
-      const log = document.getElementById("log");
-      log.innerHTML = "";
-      data.forEach(record => {
-        log.innerHTML += `<div class="record">
-          <strong>${record.name}</strong> (${record.date})<br>
-          Check In: ${record.check_in || "-"} | Check Out: ${record.check_out || "-"}<br>
-          Break Start: ${record.break_start || "-"} | Break End: ${record.break_end || "-"}
-        </div>`;
-      });
+// ── GRADIENTS ──────────────────────────────────────────
+const grads=['linear-gradient(135deg,#667eea,#764ba2)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#a18cd1,#fbc2eb)','linear-gradient(135deg,#ff9a9e,#fad0c4)','linear-gradient(135deg,#fccb90,#d57eeb)'];
+
+// ── POST CARD ──────────────────────────────────────────
+function PostCard(p,showAuthor=true){
+  const grad=grads[p.id%grads.length];
+  const emoji=p.media_type==='video'?'🎬':'🖼️';
+  let media='';
+  if(p.media_type==='image'||p.media_type==='video'){
+    if(p.content_locked){
+      media=`<div class="post-media" style="background:${grad}">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px">${emoji}</div>
+        <div class="post-locked">
+          <div style="font-size:32px">🔒</div>
+          <h4>Exclusive Content</h4>
+          <p>Subscribe to unlock all premium posts</p>
+          <button class="btn btn-primary btn-sm" onclick="go('profile','${p.username}')">Subscribe · $${p.subscription_price||'9.99'}/mo</button>
+        </div>
+      </div>`;
+    }else{
+      media=`<div class="post-media" style="background:${grad}"><div style="font-size:60px">${emoji}</div></div>`;
     }
+  }
+  const body=p.content_locked
+    ?`<div class="post-body" style="filter:blur(4px);user-select:none;pointer-events:none">This is premium subscriber-only content. Subscribe to this creator to read the full post and access all exclusive content.</div>`
+    :`<div class="post-body">${esc(p.content)}</div>`;
+  const authed=!!S.user;
+  const vchk=p.verified?`<span class="vchk">${I.check}</span>`:'';
+  const pbadge=p.is_premium?`<span class="pbadge">🔒 Premium</span>`:'';
+  return `<div class="post" id="post-${p.id}">
+    ${showAuthor?`<div class="post-hdr">
+      ${Av({display_name:p.display_name,username:p.username,avatar_color:p.avatar_color},36,36,14)}
+      <div class="post-hdr-info" style="flex:1">
+        <h4><span onclick="go('profile','${p.username}')" style="cursor:pointer">${esc(p.display_name||p.username)}</span>${vchk}${pbadge}</h4>
+        <span>@${p.username} · ${ago(p.created_at)}</span>
+      </div>
+    </div>`:`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">${ago(p.created_at)}${p.is_premium?' · '+pbadge:''}</div>`}
+    ${media}${body}
+    <div class="post-actions">
+      <button class="pabtn${p.is_liked?' liked':''}" onclick="toggleLike(${p.id},this)">${I.heart}<span id="lc-${p.id}">${fmt(p.likes_count)}</span></button>
+      <button class="pabtn">${I.comment} ${p.comments_count||0}</button>
+      ${authed&&S.user.id!==p.creator_id?`<button class="pabtn" onclick="openTip(${p.creator_id},'${esc(p.display_name||p.username)}')">${I.dollar} Tip</button>`:''}
+      ${authed?`<button class="pabtn" onclick="openMsg(${p.creator_id},'${esc(p.display_name||p.username)}','${p.username}')">${I.msg} Message</button>`:''}
+    </div>
+  </div>`;
+}
 
-    async function sendAction(endpoint) {
-      const name = document.getElementById("name").value.trim();
-      if (!name) return alert("Please enter your name!");
-      const res = await fetch(`${apiBase}/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name })
-      });
-      const data = await res.json();
-      alert(data.message);
-      loadRecords();
+// ── CREATOR CARD ───────────────────────────────────────
+function CCard(c){
+  const l=(c.display_name||c.username||'?')[0].toUpperCase();
+  const vchk=c.verified?`<span class="vchk">${I.check}</span>`:'';
+  return `<div class="ccard" onclick="go('profile','${c.username}')">
+    <div class="ccard-cover" style="background:${c.cover_color||'#1a1a2e'}"></div>
+    <div class="ccard-body">
+      <div class="av" style="background:${c.avatar_color||'#00AFF0'};width:50px;height:50px;font-size:19px;border:3px solid #fff">${l}</div>
+      <div class="ccard-name">${esc(c.display_name||c.username)}${vchk}</div>
+      <div class="ccard-un">@${c.username}</div>
+      <div class="ccard-stats"><span><b>${fmt(c.total_posts)}</b> posts</span><span><b>${fmt(c.total_subscribers)}</b> fans</span></div>
+      ${c.is_subscribed
+        ?`<button class="btn btn-ghost btn-sm btn-block" onclick="event.stopPropagation();go('profile','${c.username}')">✓ Subscribed</button>`
+        :`<button class="btn btn-primary btn-sm btn-block" onclick="event.stopPropagation();subscribe(${c.id},'${c.username}',${c.subscription_price})">Subscribe · $${c.subscription_price}/mo</button>`}
+    </div>
+  </div>`;
+}
+
+// ── LANDING ────────────────────────────────────────────
+function Landing(){
+  setTimeout(async()=>{
+    const cs=await api('/api/creators?limit=8');
+    const el=document.getElementById('lc');
+    if(el&&Array.isArray(cs)) el.innerHTML=`<div class="cgrid">${cs.map(CCard).join('')}</div>`;
+  },0);
+  return `<div>
+    <nav class="landing-nav">
+      <div class="logo"><div class="logo-icon">FC</div><span class="logo-text">FanConnect</span></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="modal('login')">Log in</button>
+        <button class="btn btn-primary btn-sm" onclick="modal('register')">Sign up free</button>
+      </div>
+    </nav>
+    <div class="hero">
+      <h1>Connect with your<br><span>favorite creators</span></h1>
+      <p>Subscribe for exclusive content, behind-the-scenes access, and direct messaging with the creators you love.</p>
+      <div class="hero-btns">
+        <button class="btn btn-primary btn-lg" onclick="modal('register')">Get started free</button>
+        <button class="btn btn-lg" style="border:2px solid #fff;color:#fff;background:transparent" onclick="modal('login')">Already a member?</button>
+      </div>
+    </div>
+    <div style="padding:50px 40px;background:#fff">
+      <h2 style="text-align:center;font-size:28px;margin-bottom:30px">Featured Creators</h2>
+      <div id="lc" style="max-width:1200px;margin:0 auto"><div class="spin"></div></div>
+      <div style="text-align:center;margin-top:30px"><button class="btn btn-primary" onclick="modal('register')">Join to see all creators →</button></div>
+    </div>
+    <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:70px 40px;text-align:center;color:#fff">
+      <h2 style="font-size:32px;margin-bottom:12px">Are you a creator?</h2>
+      <p style="font-size:16px;opacity:.8;margin-bottom:28px">Share your passion and earn monthly subscriptions from your fans</p>
+      <button class="btn btn-primary btn-lg" onclick="modal('register-creator')">Start earning today</button>
+    </div>
+  </div>`;
+}
+
+// ── SIDEBAR ────────────────────────────────────────────
+function Sidebar(){
+  const u=S.user,v=S.view;
+  return `<aside class="sidebar">
+    <div class="logo" onclick="go('home')"><div class="logo-icon">FC</div><span class="logo-text">FanConnect</span></div>
+    <ul class="nav">
+      <li class="navitem${v==='home'?' active':''}" onclick="go('home')">${I.home}<span>Home</span></li>
+      <li class="navitem${v==='explore'?' active':''}" onclick="go('explore')">${I.explore}<span>Explore</span></li>
+      <li class="navitem${v==='notifs'?' active':''}" onclick="go('notifs')">${I.bell}<span>Notifications</span></li>
+      <li class="navitem${v==='messages'?' active':''}" onclick="go('messages')">${I.msg}<span>Messages</span></li>
+      <li class="navitem" onclick="go('profile','${u.username}')">${I.user}<span>My Profile</span></li>
+      ${u.role==='creator'?`<li class="navitem${v==='dashboard'?' active':''}" onclick="go('dashboard')">${I.star}<span>Creator Studio</span></li>`:''}
+      <li class="navitem${v==='settings'?' active':''}" onclick="go('settings')">${I.cog}<span>Settings</span></li>
+      <li class="navitem" onclick="logout()">${I.out}<span>Log out</span></li>
+    </ul>
+    <div class="suser" onclick="go('profile','${u.username}')">
+      ${Av(u,36,36,14)}
+      <div style="min-width:0">
+        <div class="suser-name">${esc(u.display_name||u.username)}</div>
+        <div class="suser-un">@${u.username}</div>
+      </div>
+    </div>
+  </aside>`;
+}
+
+// ── RIGHT SIDEBAR ──────────────────────────────────────
+function RSidebar(){
+  setTimeout(async()=>{
+    const el=document.getElementById('rsugg');
+    if(!el)return;
+    const cs=await api('/api/creators?limit=6');
+    const list=(Array.isArray(cs)?cs:[]).filter(c=>!c.is_subscribed).slice(0,5);
+    if(!list.length){el.innerHTML='<h3>Who to follow</h3><p style="color:var(--muted);font-size:13px">You\'re following everyone! 🎉</p>';return;}
+    el.innerHTML=`<h3>Who to follow</h3>${list.map(c=>`<div class="sug-item">
+      ${Av(c,34,34,13)}
+      <div class="sug-info">
+        <div class="sug-name" onclick="go('profile','${c.username}')" style="cursor:pointer">${esc(c.display_name||c.username)}${c.verified?`<span class="vchk">${I.check}</span>`:''}</div>
+        <div class="sug-meta">${fmt(c.total_subscribers)} fans · $${c.subscription_price}/mo</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="subscribe(${c.id},'${c.username}',${c.subscription_price})">+</button>
+    </div>`).join('')}`;
+  },0);
+  return `<div class="rsidebar">
+    <div class="searchbar" style="margin-bottom:14px">${I.search}
+      <input placeholder="Search creators…" onkeyup="if(event.key==='Enter')go('explore',{search:this.value})">
+    </div>
+    <div class="suggest-card" id="rsugg"><div class="spin"></div></div>
+    <div style="font-size:11px;color:var(--muted);padding:8px">FanConnect · Your creators, your way</div>
+  </div>`;
+}
+
+// ── HOME ───────────────────────────────────────────────
+function Home(){
+  setTimeout(async()=>{
+    const[posts,subs]=await Promise.all([api('/api/posts/feed'),api('/api/subscriptions')]);
+    const sr=document.getElementById('sr');
+    const fc=document.getElementById('fc');
+    if(sr){
+      sr.innerHTML=subs.length
+        ?`<div class="stories">${subs.map(s=>`<div class="story" onclick="go('profile','${s.username}')">
+          <div class="story-ring"><div class="story-av" style="background:${s.avatar_color||'#00AFF0'}">${(s.display_name||s.username)[0].toUpperCase()}</div></div>
+          <span class="story-lbl">${esc(s.display_name||s.username)}</span>
+        </div>`).join('')}</div>`
+        :`<p style="padding:14px 20px;font-size:13px;color:var(--muted)">Subscribe to creators to see their updates</p>`;
     }
+    if(fc){
+      if(!Array.isArray(posts)||!posts.length){
+        fc.innerHTML=`<div class="empty"><div style="font-size:44px;margin-bottom:12px">📭</div><h3>Your feed is empty</h3><p>Subscribe to creators to see their posts</p><button class="btn btn-primary" style="margin-top:14px" onclick="go('explore')">Explore creators</button></div>`;
+      }else{
+        fc.innerHTML=posts.map(p=>PostCard(p,true)).join('');
+      }
+    }
+  },0);
+  return `<div>
+    <div class="mhead"><h2>Home</h2></div>
+    <div id="sr"><div class="spin"></div></div>
+    <div id="fc"><div class="spin"></div></div>
+  </div>`;
+}
 
-    function checkIn() { sendAction("checkin"); }
-    function checkOut() { sendAction("checkout"); }
-    function breakStart() { sendAction("breakstart"); }
-    function breakEnd() { sendAction("breakend"); }
+// ── EXPLORE ────────────────────────────────────────────
+function Explore(){
+  const search=S.vd?.search||'';
+  setTimeout(async()=>{
+    const url='/api/creators'+(search?`?search=${encodeURIComponent(search)}`:'');
+    const cs=await api(url);
+    const el=document.getElementById('econt');
+    if(!el)return;
+    if(!Array.isArray(cs)||!cs.length){el.innerHTML=`<div class="empty"><h3>No creators found</h3></div>`;return;}
+    el.innerHTML=`<div class="cgrid">${cs.map(CCard).join('')}</div>`;
+  },0);
+  return `<div>
+    <div class="mhead"><h2>Explore Creators</h2></div>
+    <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+      <div class="searchbar">${I.search}
+        <input id="es" placeholder="Search by name or niche…" value="${esc(search)}" onkeyup="if(event.key==='Enter')go('explore',{search:this.value})">
+        <button class="btn btn-primary btn-sm" onclick="go('explore',{search:document.getElementById('es').value})">Search</button>
+      </div>
+    </div>
+    <div id="econt"><div class="spin"></div></div>
+  </div>`;
+}
 
-    // Load records on page load
-    loadRecords();
-  </script>
+// ── PROFILE ────────────────────────────────────────────
+function Profile(){
+  const username=S.vd;
+  if(!username){go('explore');return'';}
+  setTimeout(async()=>{
+    const[profile,posts]=await Promise.all([api(`/api/users/${username}`),api(`/api/posts/creator/${username}`)]);
+    const el=document.getElementById('pview');
+    if(!el||profile.error){el&&(el.innerHTML='<div class="empty"><h3>User not found</h3></div>');return;}
+    const letter=(profile.display_name||profile.username)[0].toUpperCase();
+    const isOwn=profile.is_own_profile,isSub=profile.is_subscribed;
+    const vchk=profile.verified?`<span class="vchk">${I.check}</span>`:'';
+    el.innerHTML=`
+      <div class="mhead">
+        <button class="btn btn-ghost btn-sm" onclick="history.back()">← Back</button>
+        <h2>${esc(profile.display_name||profile.username)}</h2><span></span>
+      </div>
+      <div class="prof-cover" style="background:${profile.cover_color||'#1a1a2e'}"></div>
+      <div class="prof-info">
+        <div class="prof-av-wrap">
+          <div class="av" style="background:${profile.avatar_color||'#00AFF0'};width:100px;height:100px;font-size:38px;border:4px solid #fff">${letter}</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px">
+          <div>
+            <div class="prof-name">${esc(profile.display_name||profile.username)}${vchk}</div>
+            <div class="prof-un">@${profile.username}</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${isOwn
+              ?`<button class="btn btn-ghost btn-sm" onclick="go('settings')">Edit profile</button>`
+              :isSub
+                ?`<button class="btn btn-ghost btn-sm" onclick="openMsg(${profile.id},'${esc(profile.display_name||profile.username)}','${profile.username}')">${I.msg}</button>
+                  <button class="btn btn-outline btn-sm" onclick="unsubscribe(${profile.id},'${profile.username}')">✓ Subscribed</button>`
+                :`<button class="btn btn-ghost btn-sm" onclick="openMsg(${profile.id},'${esc(profile.display_name||profile.username)}','${profile.username}')">${I.msg}</button>
+                  <button class="btn btn-primary" onclick="subscribe(${profile.id},'${profile.username}',${profile.subscription_price})">Subscribe · $${profile.subscription_price}/mo</button>`}
+          </div>
+        </div>
+        <p class="prof-bio">${esc(profile.bio||'')}</p>
+        <div class="prof-stats">
+          <div><div class="pstat-v">${fmt(profile.total_posts)}</div><div class="pstat-l">Posts</div></div>
+          <div><div class="pstat-v">${fmt(profile.total_subscribers)}</div><div class="pstat-l">Fans</div></div>
+          <div><div class="pstat-v">${fmt(profile.total_likes)}</div><div class="pstat-l">Likes</div></div>
+        </div>
+        ${!isSub&&!isOwn&&profile.role==='creator'?`<div class="sub-banner">
+          <h3>🔒 Subscribe for exclusive content</h3>
+          <p>Unlock all premium posts, direct messaging, and more</p>
+          <button class="btn btn-primary" onclick="subscribe(${profile.id},'${profile.username}',${profile.subscription_price})">Subscribe for $${profile.subscription_price}/month</button>
+        </div>`:''}
+      </div>
+      <div style="height:1px;background:var(--border)"></div>
+      ${!posts.length
+        ?'<div class="empty"><h3>No posts yet</h3></div>'
+        :posts.map(p=>PostCard({...p,username:profile.username,display_name:profile.display_name,avatar_color:profile.avatar_color,verified:profile.verified,subscription_price:profile.subscription_price},false)).join('')}`;
+  },0);
+  return `<div id="pview"><div class="spin"></div></div>`;
+}
+
+// ── MESSAGES ───────────────────────────────────────────
+let activeConv=null;
+
+function Messages(){
+  const init=S.vd;
+  setTimeout(async()=>{
+    const convs=await api('/api/messages');
+    const cl=document.getElementById('cl');
+    if(!cl)return;
+    const rows=!convs.length
+      ?'<div class="empty"><p>No messages yet</p><button class="btn btn-primary btn-sm" onclick="go(\'explore\')">Find creators</button></div>'
+      :convs.map(c=>`<div class="conv-item${activeConv===c.other_id?' active':''}" onclick="openChat(${c.other_id},'${esc(c.display_name||c.username)}','${c.username}')">
+        ${Av({display_name:c.display_name,username:c.username,avatar_color:c.avatar_color},36,36,14)}
+        <div style="flex:1;min-width:0">
+          <div class="conv-name">${esc(c.display_name||c.username)}${c.verified?`<span class="vchk">${I.check}</span>`:''}</div>
+          <div class="conv-prev">${esc(c.last_message||'')}</div>
+        </div>
+        ${c.unread_count>0?`<span class="nbadge">${c.unread_count}</span>`:''}
+      </div>`).join('');
+    cl.innerHTML=`<div style="padding:14px 16px;border-bottom:1px solid var(--border);font-size:17px;font-weight:800">Messages</div>${rows}`;
+    if(init)openChat(init.id,init.display_name,init.username);
+  },0);
+  return `<div class="msg-wrap">
+    <div class="conv-list" id="cl"><div class="spin"></div></div>
+    <div class="chat" id="chat"><div class="empty" style="margin:auto"><div style="font-size:44px;margin-bottom:10px">💬</div><h3>Select a conversation</h3></div></div>
+  </div>`;
+}
+
+async function openChat(uid,dname,uname){
+  activeConv=uid;
+  const msgs=await api(`/api/messages/${uid}`);
+  const chat=document.getElementById('chat');
+  if(!chat)return;
+  chat.innerHTML=`
+    <div class="chat-hdr">
+      ${Av({display_name:dname,username:uname,avatar_color:'#00AFF0'},36,36,14)}
+      <div onclick="go('profile','${uname}')" style="cursor:pointer">
+        <div style="font-weight:700;font-size:14px">${esc(dname||uname)}</div>
+        <div style="font-size:11px;color:var(--muted)">@${uname}</div>
+      </div>
+    </div>
+    <div class="chat-msgs" id="cm">
+      ${msgs.map(m=>`<div class="bubble ${m.sender_id===S.user.id?'sent':'recv'}">${esc(m.content)}<div style="font-size:10px;opacity:.65;margin-top:3px">${ago(m.created_at)}</div></div>`).join('')}
+    </div>
+    <div class="chat-in">
+      <textarea class="chat-input" id="ci" rows="1" placeholder="Send a message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg(${uid})}"></textarea>
+      <button class="btn btn-primary btn-sm" onclick="sendMsg(${uid})">${I.send}</button>
+    </div>`;
+  const cm=document.getElementById('cm');
+  if(cm)cm.scrollTop=cm.scrollHeight;
+}
+
+async function sendMsg(rid){
+  const inp=document.getElementById('ci');
+  if(!inp||!inp.value.trim())return;
+  const content=inp.value.trim();inp.value='';
+  await api('/api/messages',{method:'POST',body:JSON.stringify({receiver_id:rid,content})});
+  openChat(rid,'','');
+}
+
+function openMsg(uid,dname,uname){
+  if(!S.user){modal('login');return;}
+  go('messages',{id:uid,display_name:dname,username:uname});
+}
+
+// ── DASHBOARD ──────────────────────────────────────────
+function Dashboard(){
+  if(S.user.role!=='creator') return`<div class="empty"><h3>Creators only</h3></div>`;
+  setTimeout(async()=>{
+    const stats=await api('/api/stats');
+    const el=document.getElementById('db');
+    if(!el)return;
+    el.innerHTML=`
+      <div class="mhead"><h2>Creator Studio</h2><button class="btn btn-primary btn-sm" onclick="modal('newpost')">${I.plus} New Post</button></div>
+      <div class="stat-grid">
+        <div class="scard"><div class="scard-v">${stats.total_subscribers}</div><div class="scard-l">Total Fans</div></div>
+        <div class="scard"><div class="scard-v">$${stats.monthly_revenue}</div><div class="scard-l">Monthly Revenue</div></div>
+        <div class="scard"><div class="scard-v">${stats.posts.length}</div><div class="scard-l">Total Posts</div></div>
+        <div class="scard"><div class="scard-v">$${stats.total_tips}</div><div class="scard-l">Tips Received</div></div>
+      </div>
+      ${stats.recent_subscribers.length?`<div style="padding:0 20px 16px">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:10px">Recent Subscribers</h3>
+        ${stats.recent_subscribers.map(s=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          ${Av(s,34,34,13)}<div><div style="font-weight:600;font-size:13px">${esc(s.display_name||s.username)}</div>
+          <div style="font-size:11px;color:var(--muted)">${ago(s.created_at)}</div></div></div>`).join('')}
+      </div>`:''}
+      <div style="height:1px;background:var(--border)"></div>
+      <div style="padding:16px 20px"><h3 style="font-size:15px;font-weight:700;margin-bottom:10px">Your Posts</h3></div>
+      ${!stats.posts.length
+        ?`<div class="empty"><h3>No posts yet</h3><button class="btn btn-primary" onclick="modal('newpost')">Create your first post</button></div>`
+        :stats.posts.map(p=>PostCard({...p,username:S.user.username,display_name:S.user.display_name,avatar_color:S.user.avatar_color},false)).join('')}`;
+  },0);
+  return`<div id="db"><div class="spin"></div></div>`;
+}
+
+// ── SETTINGS ───────────────────────────────────────────
+function Settings(){
+  setTimeout(async()=>{
+    const p=await api(`/api/users/${S.user.username}`);
+    const el=document.getElementById('sett');
+    if(!el)return;
+    el.innerHTML=`
+      <div class="mhead"><h2>Settings</h2></div>
+      <div style="padding:20px;max-width:480px">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:14px">Edit Profile</h3>
+        <div id="salert"></div>
+        <div class="fg"><label class="flabel">Display Name</label><input class="finput" id="sname" value="${esc(p.display_name||'')}"></div>
+        <div class="fg"><label class="flabel">Bio</label><textarea class="finput" id="sbio">${esc(p.bio||'')}</textarea></div>
+        ${S.user.role==='creator'?`<div class="fg"><label class="flabel">Subscription Price ($/mo)</label><input class="finput" id="sprice" type="number" min="0" step="0.01" value="${p.subscription_price||9.99}"></div>`:''}
+        <button class="btn btn-primary" onclick="saveSettings()">Save changes</button>
+        <div class="divider"></div>
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:10px">Account</h3>
+        <div style="padding:10px 14px;background:var(--bg);border-radius:10px;font-size:13px;margin-bottom:14px">${S.user.role==='creator'?'⭐ Creator Account':'👤 Fan Account'}</div>
+        <button class="btn btn-danger btn-sm" onclick="logout()">Log out</button>
+      </div>`;
+  },0);
+  return`<div id="sett"><div class="spin"></div></div>`;
+}
+
+async function saveSettings(){
+  const name=document.getElementById('sname').value;
+  const bio=document.getElementById('sbio').value;
+  const pe=document.getElementById('sprice');
+  const body={display_name:name,bio,subscription_price:pe?parseFloat(pe.value):undefined};
+  const r=await api('/api/users/profile',{method:'PUT',body:JSON.stringify(body)});
+  const a=document.getElementById('salert');
+  if(r.success){S.user.display_name=name;localStorage.setItem('fc_user',JSON.stringify(S.user));toast('Profile saved!','ok');if(a)a.innerHTML='<div class="alert alert-ok">Profile updated!</div>';}
+  else if(a)a.innerHTML=`<div class="alert alert-err">${r.error}</div>`;
+}
+
+// ── NOTIFICATIONS ──────────────────────────────────────
+function Notifs(){
+  return`<div>
+    <div class="mhead"><h2>Notifications</h2></div>
+    <div style="padding:16px">
+      <div style="display:flex;gap:12px;align-items:center;padding:14px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px">
+        <div style="width:38px;height:38px;background:var(--blue-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💌</div>
+        <div><div style="font-weight:700;font-size:13px">Welcome to FanConnect!</div><div style="font-size:12px;color:var(--muted)">Explore creators and subscribe to their content.</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;padding:14px;border:1px solid var(--border);border-radius:12px">
+        <div style="width:38px;height:38px;background:var(--blue-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔔</div>
+        <div><div style="font-weight:700;font-size:13px">New: Direct messaging</div><div style="font-size:12px;color:var(--muted)">Message creators directly!</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── MODALS ─────────────────────────────────────────────
+let _tip=null;
+
+function modal(type){
+  document.getElementById('modalWrap')?.remove();
+  const wrap=document.createElement('div');
+  wrap.className='overlay';wrap.id='modalWrap';
+  wrap.onclick=e=>{if(e.target===wrap)closeModal();};
+  let h='';
+  if(type==='login'){h=`<div class="mhdr"><div class="mtitle">Log in</div><button class="mclose" onclick="closeModal()">✕</button></div>
+    <div id="ma"></div>
+    <div class="fg"><label class="flabel">Email</label><input class="finput" id="le" type="email" value="fan@demo.com"></div>
+    <div class="fg"><label class="flabel">Password</label><input class="finput" id="lp" type="password" value="password123"
+      onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()">Log in</button>
+    <div class="divider"></div>
+    <p style="text-align:center;font-size:13px;color:var(--muted)">No account? <a href="#" onclick="closeModal();modal('register')">Sign up</a></p>
+    <div style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:11px;color:var(--muted)">
+      Demo fan: fan@demo.com / password123<br>Demo creator: alex@demo.com / password123
+    </div>`;}
+  if(type==='register'||type==='register-creator'){const isC=type==='register-creator';h=`<div class="mhdr"><div class="mtitle">Create account</div><button class="mclose" onclick="closeModal()">✕</button></div>
+    <div id="ma"></div>
+    <div class="fg"><label class="flabel">Username</label><input class="finput" id="ru" placeholder="yourname"></div>
+    <div class="fg"><label class="flabel">Display Name</label><input class="finput" id="rdn" placeholder="Your Name"></div>
+    <div class="fg"><label class="flabel">Email</label><input class="finput" id="re" type="email" placeholder="you@example.com"></div>
+    <div class="fg"><label class="flabel">Password</label><input class="finput" id="rp" type="password" placeholder="Min 8 characters"></div>
+    <div class="fg"><label class="flabel">Account Type</label><select class="finput" id="rr">
+      <option value="fan" ${!isC?'selected':''}>👤 Fan — Follow &amp; subscribe to creators</option>
+      <option value="creator" ${isC?'selected':''}>⭐ Creator — Share content &amp; earn</option>
+    </select></div>
+    <button class="btn btn-primary btn-block" onclick="doRegister()">Create account</button>
+    <div class="divider"></div>
+    <p style="text-align:center;font-size:13px;color:var(--muted)">Have an account? <a href="#" onclick="closeModal();modal('login')">Log in</a></p>`;}
+  if(type==='newpost'){h=`<div class="mhdr"><div class="mtitle">New Post</div><button class="mclose" onclick="closeModal()">✕</button></div>
+    <div id="ma"></div>
+    <div class="fg"><label class="flabel">Content</label><textarea class="finput" id="pc" placeholder="Share something with your fans…" style="min-height:130px"></textarea></div>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <div class="fg" style="flex:1;margin:0"><label class="flabel">Media</label><select class="finput" id="pm"><option value="text">Text only</option><option value="image">📷 Image</option><option value="video">🎬 Video</option></select></div>
+      <div class="fg" style="flex:1;margin:0"><label class="flabel">Access</label><select class="finput" id="pp"><option value="0">🌐 Free for all</option><option value="1">🔒 Subscribers only</option></select></div>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="doPost()">Publish</button>`;}
+  if(type==='tip'){h=`<div class="mhdr"><div class="mtitle">Send a Tip 💸</div><button class="mclose" onclick="closeModal()">✕</button></div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:16px">Send a tip to ${esc(_tip?.name||'creator')}</p>
+    <div class="fg"><label class="flabel">Amount ($)</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">${[3,5,10,20].map(a=>`<button class="btn btn-ghost btn-sm" onclick="document.getElementById('ta').value=${a}">$${a}</button>`).join('')}</div>
+      <input class="finput" id="ta" type="number" min="1" step="1" value="5"></div>
+    <div class="fg"><label class="flabel">Message (optional)</label><input class="finput" id="tm" placeholder="Love your content!"></div>
+    <button class="btn btn-primary btn-block" onclick="doTip()">Send Tip</button>`;}
+  wrap.innerHTML=`<div class="modal">${h}</div>`;
+  document.body.appendChild(wrap);
+}
+
+function closeModal(){document.getElementById('modalWrap')?.remove();}
+function openTip(cid,name){if(!S.user){modal('login');return;}_tip={id:cid,name};modal('tip');}
+
+// ── AUTH ACTIONS ───────────────────────────────────────
+async function doLogin(){
+  const e=document.getElementById('le').value,p=document.getElementById('lp').value;
+  const r=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:e,password:p})});
+  const a=document.getElementById('ma');
+  if(r.error){a.innerHTML=`<div class="alert alert-err">${r.error}</div>`;return;}
+  S.token=r.token;S.user=r.user;
+  localStorage.setItem('fc_token',r.token);localStorage.setItem('fc_user',JSON.stringify(r.user));
+  closeModal();render();
+}
+
+async function doRegister(){
+  const username=document.getElementById('ru').value,display_name=document.getElementById('rdn').value,
+    email=document.getElementById('re').value,password=document.getElementById('rp').value,role=document.getElementById('rr').value;
+  const r=await api('/api/auth/register',{method:'POST',body:JSON.stringify({username,display_name,email,password,role})});
+  const a=document.getElementById('ma');
+  if(r.error){a.innerHTML=`<div class="alert alert-err">${r.error}</div>`;return;}
+  S.token=r.token;S.user=r.user;
+  localStorage.setItem('fc_token',r.token);localStorage.setItem('fc_user',JSON.stringify(r.user));
+  closeModal();render();
+}
+
+async function doPost(){
+  const content=document.getElementById('pc').value,media_type=document.getElementById('pm').value,is_premium=parseInt(document.getElementById('pp').value);
+  const a=document.getElementById('ma');
+  if(!content.trim()){a.innerHTML='<div class="alert alert-err">Content required</div>';return;}
+  const r=await api('/api/posts',{method:'POST',body:JSON.stringify({content,media_type,is_premium})});
+  if(r.success){toast('Post published!','ok');closeModal();go('dashboard');}
+  else a.innerHTML=`<div class="alert alert-err">${r.error}</div>`;
+}
+
+async function doTip(){
+  const amount=parseFloat(document.getElementById('ta').value),message=document.getElementById('tm').value;
+  if(!amount||amount<1){toast('Enter a valid amount','err');return;}
+  await api('/api/tips',{method:'POST',body:JSON.stringify({creator_id:_tip.id,amount,message})});
+  toast(`Tip of $${amount} sent! 💸`,'ok');closeModal();
+}
+
+// ── SUBSCRIBE ──────────────────────────────────────────
+async function subscribe(cid,username,price){
+  if(!S.user){modal('login');return;}
+  const r=await api('/api/subscriptions',{method:'POST',body:JSON.stringify({creator_id:cid})});
+  if(r.success){toast(`Subscribed to @${username}!`,'ok');S.view==='profile'&&S.vd===username?go('profile',username):S.view==='explore'?go('explore',S.vd):go('home');}
+  else toast(r.error||'Error','err');
+}
+
+async function unsubscribe(cid,username){
+  const r=await api(`/api/subscriptions/${cid}`,{method:'DELETE'});
+  if(r.success){toast(`Unsubscribed from @${username}`);go('profile',username);}
+}
+
+// ── LIKE ───────────────────────────────────────────────
+async function toggleLike(postId,btn){
+  if(!S.user){modal('login');return;}
+  const r=await api(`/api/posts/${postId}/like`,{method:'POST'});
+  if(btn){
+    btn.classList.toggle('liked',r.liked);
+    const lc=document.getElementById('lc-'+postId);
+    if(lc){const n=parseInt(lc.textContent)||0;lc.textContent=fmt(r.liked?n+1:Math.max(0,n-1));}
+  }
+}
+
+// ── RENDER ─────────────────────────────────────────────
+function render(){
+  const root=document.getElementById('root');
+  if(!S.user){root.innerHTML=Landing();return;}
+  const views={home:Home,explore:Explore,profile:Profile,messages:Messages,dashboard:Dashboard,settings:Settings,notifs:Notifs};
+  const V=views[S.view]||Home;
+  root.innerHTML=`<div class="app">${Sidebar()}<main class="main" id="main">${V()}</main>${RSidebar()}</div>`;
+}
+
+render();
+</script>
 </body>
 </html>
